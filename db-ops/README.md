@@ -1,4 +1,4 @@
-# DBs-prj4 
+# db-prj4 
 (Simple MariaDB and PostgreSQL Install)
 
 This project provides a lightweight Ansible playbook for installing and enabling **MariaDB** and **PostgreSQL** on remote Linux servers.
