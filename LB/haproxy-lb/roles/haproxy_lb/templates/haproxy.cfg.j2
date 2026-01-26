@@ -1,0 +1,23 @@
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend http_front
+    bind *:80
+    default_backend http_back
+
+backend http_back
+    balance roundrobin
+    option httpchk
+    server web1 {{ hostvars['web1']['ansible_host'] }}:80 check
+    server web2 {{ hostvars['web2']['ansible_host'] }}:80 check
+
