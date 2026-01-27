@@ -1,23 +1,49 @@
-
 ---
-- name: Permit root login in the target hosts
+- name: Manage SSH root login configuration securely
   hosts: all
   become: true
-  gather_facts: false
+  gather_facts: true
+
+  vars:
+    sshd_config_path: /etc/ssh/sshd_config
+    permit_root_login_value: "yes"
+
+  pre_tasks:
+    - name: Ensure sshd config file exists
+      ansible.builtin.stat:
+        path: "{{ sshd_config_path }}"
+      register: sshd_config_stat
+
+    - name: Fail if sshd_config is missing
+      ansible.builtin.fail:
+        msg: "sshd_config file not found on target host."
+      when: not sshd_config_stat.stat.exists
 
   tasks:
-    - name: Here, i'm enabling the permitrootlogin to setting it to yes in the sshd_config file
-      ansible.builtin.lineinfile:
-        dest: /etc/ssh/sshd_config
-        regexp: '^PermitRootLogin'
-        line: "PermitRootLogin yes"
-        state: present
-      notify: ssh service restart
+    - name: Backup existing sshd_config
+      ansible.builtin.copy:
+        src: "{{ sshd_config_path }}"
+        dest: "{{ sshd_config_path }}.bak_{{ ansible_date_time.iso8601 }}"
+        remote_src: true
+      when: sshd_config_stat.stat.exists
 
+    - name: Configure PermitRootLogin setting
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_path }}"
+        regexp: '^#?PermitRootLogin\s+.*'
+        line: "PermitRootLogin {{ permit_root_login_value }}"
+        state: present
+        create: false
+        backrefs: true
+      notify: Restart SSH service
+
+    - name: Validate sshd configuration syntax
+      ansible.builtin.command: sshd -t
+      changed_when: false
 
   handlers:
-    - name: ssh service restart
+    - name: Restart SSH service
       ansible.builtin.service:
-        name: sshd
+        name: "{{ 'sshd' if ansible_os_family != 'Debian' else 'ssh' }}"
         state: restarted
 
