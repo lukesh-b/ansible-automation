@@ -1,0 +1,23 @@
+
+---
+- name: Permit root login in the target hosts
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Here, i'm enabling the permitrootlogin to setting it to yes in the sshd_config file
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: "PermitRootLogin yes"
+        state: present
+      notify: ssh service restart
+
+
+  handlers:
+    - name: ssh service restart
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
