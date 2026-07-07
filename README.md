@@ -1,15 +1,30 @@
-# **ansible-auto.publ**
+# ansible-automation
 
-Welcome to the **`ansible-auto.publ`** repository! 
+Ansible playbooks and roles for common Linux infrastructure operations, organised by task area. Each folder is a self-contained example with its own inventory and playbook.
 
-This repository is **public** and serves as a central place for showcasing some of the core Ansible automation projects. 
+## Role catalogue
 
-## **Repository Overview**
+| Area | Path | What it does |
+|------|------|--------------|
+| Database ops | `db-ops/` | Install and configure a database service via playbook |
+| Disk ops | `disk-ops/` | End-to-end LVM setup, plus primary and logical partition creation |
+| Load balancer | `lb-ops/` | HAProxy and Nginx load balancers built as roles (tasks, handlers, Jinja2 templates) |
+| Service ops | `service-ops/` | Manage systemd services across hosts |
+| User management | `usr-mgnt/` | Enforce SSH `PermitRootLogin` policy and related user tasks |
+| Web ops | `web-ops/` | Provision a web server via a `common` role (tasks + templated MOTD) |
 
-In this public repository, you'll find the following:
+## Concepts demonstrated
+- **Roles** with the standard `tasks/`, `handlers/`, `templates/` layout (see `lb-ops/`).
+- **Handlers** triggered by `notify`, so services restart only on change.
+- **Jinja2 templates** for config files (`haproxy.cfg.j2`, `nginx.conf.j2`, `motd.j2`).
+- **Per-example inventories** (`hosts`, `inventory.ini`).
+- **Idempotency**: re-running a playbook converges to the same state.
 
-- **Public Ansible Playbooks**: Various automation scripts to help with infrastructure provisioning, management, and application deployment.
-- **Example Configurations**: Generic configurations for different environments (e.g., dev, staging, production).
-- **Project-specific Modules**: Modular playbooks for specific tasks (e.g., setting up a web server, services, disks, configuring databases, etc.).
+## Usage
 
-> **Note**: This repository **only** contains examples, basic automation scripts, and public resources. 
+```bash
+cd lb-ops/haproxy-lb/roles          # example
+ansible-playbook -i hosts lb.yml
+```
+
+Adjust the inventory (`hosts` / `inventory.ini`) to your target machines, then run the playbook for the area you want. Playbooks assume SSH access and sudo on the targets.
